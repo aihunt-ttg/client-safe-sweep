@@ -1,0 +1,26 @@
+{
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
+  "name": "client-safe-sweep",
+  "description": "Pre-send safety sweep for client-facing artifacts — catches secrets, methodology leaks, AI-authorship markers, absolute guarantees, and cross-client contamination before anything leaves the building.",
+  "version": "1.0.0",
+  "owner": {
+    "name": "aihunt-ttg",
+    "url": "https://github.com/aihunt-ttg"
+  },
+  "metadata": {
+    "pluginRoot": "./plugins"
+  },
+  "plugins": [
+    {
+      "name": "client-safe-sweep",
+      "displayName": "Client-Safe Sweep",
+      "description": "Pre-send safety sweep for any client-facing artifact: 8-check battery with a bundled secrets/compliance scanner. Proposes fixes, re-sweeps, never sends.",
+      "version": "1.0.0",
+      "source": "client-safe-sweep",
+      "author": { "name": "aihunt-ttg", "url": "https://github.com/aihunt-ttg" },
+      "license": "MIT",
+      "keywords": ["client-work", "freelance", "compliance", "safety", "qa"],
+      "category": "productivity"
+    }
+  ]
+}

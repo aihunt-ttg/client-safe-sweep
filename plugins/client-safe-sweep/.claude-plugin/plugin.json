@@ -1,0 +1,5 @@
+{
+  "name": "client-safe-sweep",
+  "version": "1.0.0",
+  "description": "Pre-send safety sweep for client-facing artifacts — secrets, methodology leaks, AI-authorship markers, guarantees, overclaims, contamination, jargon."
+}
