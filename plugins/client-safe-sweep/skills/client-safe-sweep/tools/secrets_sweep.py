@@ -89,34 +89,59 @@ def find_urls(text: str):
 
 
 _MASK = lambda s: f"<REDACTED:{len(s)}chars>"
+# Query string on a URL — where embedded keys live (…/webhook?admin_key=sk-live-…).
+# Redacting just the query keeps the host visible, which is the useful part of a
+# plumbing hit, while killing the credential.
+_URL_QUERY = re.compile(r"(https?://[^\s\"'<>]*?)\?[^\s\"'<>]*")
 # Value sitting after an `=` or `:` — e.g. api_key = sk-live...
 _ASSIGNED_VALUE = re.compile(r"([=:]\s*)(['\"]?)([^\s'\",;]{6,})(\2)")
-# Any long unbroken credential-shaped run.
-_TOKEN_LIKE = re.compile(r"[A-Za-z0-9_\-]{12,}")
+# Long unbroken run that looks like a credential rather than a word. The digit/
+# separator test spares ordinary prose ("unconditional") and hostnames short enough
+# to stay readable, while catching real keys, which run well past 16 characters.
+_TOKEN_LIKE = re.compile(r"[A-Za-z0-9_\-]{16,}")
+
+
+def _mask_if_credential_shaped(m):
+    s = m.group(0)
+    return _MASK(s) if any(c.isdigit() or c in "_-" for c in s) else s
+
+
+def safe_url(url: str) -> str:
+    """Keep the host and path, drop the query string.
+
+    The URL allowlist report is a separate code path from the pattern excerpts, and
+    it stored full URLs — so a webhook link with `?admin_key=sk-live-...` was written
+    to disk verbatim even after every pattern excerpt was correctly redacted. The host
+    is the whole point of an allowlist flag; the query never is.
+    """
+    return _URL_QUERY.sub(lambda m: f"{m.group(1)}?<REDACTED-QUERY>", url)
 
 
 def redact(text: str, pat, cat: str) -> str:
     """Strip secret material out of an excerpt before it is stored or printed.
 
-    Two passes, because one is not enough. The `secrets_credentials` pattern matches
-    the LABEL ("api_key", "Bearer", "password"), not the value — so replacing only the
-    match removes the word and leaves the actual credential sitting in the surrounding
-    excerpt. For that category we additionally mask assigned values and any long
-    token-shaped run.
+    Several passes, because one is not enough.
 
-    The aggressive pass is scoped to secrets only: masking every 12-char word would
-    make the guarantee/authorship/plumbing excerpts unreadable for no safety gain.
+    1. The `secrets_credentials` pattern matches the LABEL ("api_key", "Bearer",
+       "password"), not the value — so replacing only the match removes the word and
+       leaves the credential sitting in the surrounding excerpt.
+    2. Value-masking must run on EVERY category, not just secrets. One line can hit
+       several patterns at once: a webhook URL with an embedded key is both a secrets
+       hit and a plumbing hit, and masking only the secrets excerpt still writes the
+       key to disk via the plumbing one. (Found exactly this way, on a realistic
+       artifact, after an earlier version of this function looked correct.)
+    3. Ordering matters: the placeholder contains a colon, so an assigned-value pass
+       running after the keyword pass would match its own output and produce nested
+       `<REDACTED:<REDACTED:...` garbage.
 
-    Value-masking runs BEFORE the keyword pass, not after: the placeholder contains a
-    colon, so an assigned-value pass running second would match its own output and
-    produce nested `<REDACTED:<REDACTED:...` garbage.
+    What survives on purpose: hostnames and paths short enough to read, so a plumbing
+    hit still tells you WHICH vendor leaked. Only credential-shaped runs are masked.
     """
-    out = text
-    if cat == "secrets_credentials":
-        out = _ASSIGNED_VALUE.sub(
-            lambda m: f"{m.group(1)}{m.group(2)}{_MASK(m.group(3))}{m.group(4)}", out
-        )
-        out = _TOKEN_LIKE.sub(lambda m: _MASK(m.group(0)), out)
+    out = _URL_QUERY.sub(lambda m: f"{m.group(1)}?<REDACTED-QUERY>", text)
+    out = _ASSIGNED_VALUE.sub(
+        lambda m: f"{m.group(1)}{m.group(2)}{_MASK(m.group(3))}{m.group(4)}", out
+    )
+    out = _TOKEN_LIKE.sub(_mask_if_credential_shaped, out)
     return pat.sub(lambda m: _MASK(m.group(0)), out)
 
 
@@ -167,7 +192,7 @@ def sweep_csv(filename, path, results, url_report, host_allowed, domain_field):
                     if not host_allowed(host, own_domain):
                         url_report["flagged_non_allowlisted"].append({
                             "file": filename, "row": row_idx, "field": field,
-                            "url": url, "own_company_domain": own_domain,
+                            "url": safe_url(url), "own_company_domain": own_domain,
                         })
 
 
@@ -209,7 +234,7 @@ def main():
                 url_report["total_urls_found"] += 1
                 if not host_allowed(urlparse(url).netloc, ""):
                     url_report["flagged_non_allowlisted"].append({
-                        "file": rel, "row": None, "field": None, "url": url,
+                        "file": rel, "row": None, "field": None, "url": safe_url(url),
                     })
 
     def is_known_false_positive(hit):

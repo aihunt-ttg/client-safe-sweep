@@ -1,0 +1,150 @@
+{
+  "stage": "secrets_and_compliance_sweep",
+  "scope": {
+    "directory": "..\\..\\..\\..\\..\\examples"
+  },
+  "patterns_run": [
+    {
+      "category": "secrets_credentials",
+      "pattern": "(?i)\\b(token|api[_-]?key|secret|bearer|password|credential)\\b|sk-[a-zA-Z0-9_-]{3,}",
+      "raw_hits": 1,
+      "genuine_hits": 1,
+      "hit_detail": [
+        {
+          "file": "01-before-proposal.md",
+          "line": 14,
+          "matched_pattern": "secrets_credentials",
+          "context_excerpt": "https:<REDACTED:62chars>",
+          "classification": "unclassified_hit"
+        }
+      ]
+    },
+    {
+      "category": "ai_authorship_markers",
+      "pattern": "(?i)(claude|anthropic|openai|gpt-4|gpt-3\\.5|gpt-3|chatgpt|AI-generated|Generated with|AI generated|written by AI|large language model|\\bllm\\b)",
+      "raw_hits": 2,
+      "genuine_hits": 2,
+      "hit_detail": [
+        {
+          "file": "01-before-proposal.md",
+          "line": 30,
+          "matched_pattern": "ai_authorship_markers",
+          "context_excerpt": "<REDACTED:14chars> <REDACTED:6chars>.",
+          "classification": "unclassified_hit"
+        },
+        {
+          "file": "01-before-proposal.md",
+          "line": 30,
+          "matched_pattern": "ai_authorship_markers",
+          "context_excerpt": "<REDACTED:14chars> <REDACTED:6chars>.",
+          "classification": "unclassified_hit"
+        }
+      ]
+    },
+    {
+      "category": "absolute_guarantees",
+      "pattern": "(?i)(guarantee|100%|\\balways\\b|never fails|\\bensures?\\b|risk-free|zero risk)",
+      "raw_hits": 3,
+      "genuine_hits": 3,
+      "hit_detail": [
+        {
+          "file": "01-before-proposal.md",
+          "line": 20,
+          "matched_pattern": "absolute_guarantees",
+          "context_excerpt": "With years of experience building lead systems for agencies, I <REDACTED:9chars> you'll",
+          "classification": "unclassified_hit"
+        },
+        {
+          "file": "01-before-proposal.md",
+          "line": 21,
+          "matched_pattern": "absolute_guarantees",
+          "context_excerpt": "never miss another enquiry \u2014 the system <REDACTED:7chars> <REDACTED:4chars> of leads get a response",
+          "classification": "unclassified_hit"
+        },
+        {
+          "file": "01-before-proposal.md",
+          "line": 21,
+          "matched_pattern": "absolute_guarantees",
+          "context_excerpt": "never miss another enquiry \u2014 the system <REDACTED:7chars> <REDACTED:4chars> of leads get a response",
+          "classification": "unclassified_hit"
+        }
+      ]
+    },
+    {
+      "category": "internal_paths_and_vendor_plumbing",
+      "pattern": "(?i)(C:\\\\Users|C:/Users|n8n|railway|apify|\\bactor\\b|airtable|\\.env|ANTHROPIC_API_KEY|APIFY_TOKEN|webhook|railway\\.app|ngrok|onrender|herokuapp|instance[_ ]?url|channel[_ ]?id|chat[_ ]?id|scraperapi|brightdata|oxylabs|dataimpulse|zenrows|proxycurl|phantombuster)",
+      "raw_hits": 6,
+      "genuine_hits": 6,
+      "hit_detail": [
+        {
+          "file": "01-before-proposal.md",
+          "line": 13,
+          "matched_pattern": "internal_paths_and_vendor_plumbing",
+          "context_excerpt": "Data flows from the <REDACTED:5chars> <REDACTED:5chars> into our <REDACTED:3chars> instance at",
+          "classification": "unclassified_hit"
+        },
+        {
+          "file": "01-before-proposal.md",
+          "line": 13,
+          "matched_pattern": "internal_paths_and_vendor_plumbing",
+          "context_excerpt": "Data flows from the <REDACTED:5chars> <REDACTED:5chars> into our <REDACTED:3chars> instance at",
+          "classification": "unclassified_hit"
+        },
+        {
+          "file": "01-before-proposal.md",
+          "line": 13,
+          "matched_pattern": "internal_paths_and_vendor_plumbing",
+          "context_excerpt": "Data flows from the <REDACTED:5chars> <REDACTED:5chars> into our <REDACTED:3chars> instance at",
+          "classification": "unclassified_hit"
+        },
+        {
+          "file": "01-before-proposal.md",
+          "line": 14,
+          "matched_pattern": "internal_paths_and_vendor_plumbing",
+          "context_excerpt": "https:<REDACTED:62chars>",
+          "classification": "unclassified_hit"
+        },
+        {
+          "file": "01-before-proposal.md",
+          "line": 14,
+          "matched_pattern": "internal_paths_and_vendor_plumbing",
+          "context_excerpt": "https:<REDACTED:62chars>",
+          "classification": "unclassified_hit"
+        },
+        {
+          "file": "01-before-proposal.md",
+          "line": 14,
+          "matched_pattern": "internal_paths_and_vendor_plumbing",
+          "context_excerpt": "https:<REDACTED:62chars>",
+          "classification": "unclassified_hit"
+        }
+      ]
+    },
+    {
+      "category": "internal_methodology_csv_columns",
+      "pattern": "CSV header column check",
+      "raw_hits": 0,
+      "genuine_hits": 0,
+      "hit_detail": []
+    },
+    {
+      "category": "non_allowlisted_urls",
+      "total_urls_found": 1,
+      "flagged_non_allowlisted": 1,
+      "hit_detail": [
+        {
+          "file": "01-before-proposal.md",
+          "row": null,
+          "field": null,
+          "url": "https://n8n-prod-4471.up.railway.app/webhook/intake?<REDACTED-QUERY>"
+        }
+      ],
+      "files_checked_for_urls": {
+        "01-before-proposal.md": "1 URLs present"
+      }
+    }
+  ],
+  "total_raw_hits": 13,
+  "total_genuine_hits": 13,
+  "verdict": "fail"
+}
