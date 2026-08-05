@@ -26,7 +26,9 @@ A clean sweep gets an explicit "clean" verdict, not silence.
 - `skills/client-safe-sweep/SKILL.md` — the skill (check battery + procedure)
 - `skills/client-safe-sweep/tools/secrets_sweep.py` — standalone scanner (stdlib-only Python):
   regex battery + CSV methodology-column check + URL-allowlist check, JSON report, exit-code verdict.
-  Never prints secret values — pattern names and locations only.
+  Secret values are redacted before the report is written — you get pattern names,
+  locations, and a `<REDACTED:Nchars>` excerpt, so the report never becomes a second copy
+  of the thing you were checking for.
 
 ## Install
 

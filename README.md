@@ -31,7 +31,7 @@ Then say "sweep this" before you send anything.
 
 ## Why free
 
-This is the quality demonstrator for the Freelance Revenue Stack — a set of battle-tested Claude
+This is the quality demonstrator for the Freelance Revenue Stack — a set of Claude
 Code skills for winning and delivering freelance work (job scanning, proof demos, call prep,
 cold-call prep). If this free skill catches something for you, the paid stack is where the rest of
 the pipeline lives.

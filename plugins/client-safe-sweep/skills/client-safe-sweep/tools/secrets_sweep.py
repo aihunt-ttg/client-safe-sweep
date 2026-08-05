@@ -9,7 +9,9 @@ Scans .md/.txt/.csv/.html files under a target directory for:
   - internal methodology columns in CSV headers
   - non-allowlisted URLs
 
-NEVER prints or writes actual secret VALUES — only pattern names + locations.
+Secret VALUES are redacted before anything is printed or written — the report carries
+pattern names, locations, and a redacted excerpt (`<REDACTED:Nchars>` in place of the
+match) so you can find the hit without the report itself becoming a second leak.
 Re-runnable; writes a JSON report and exits non-zero when genuine hits remain.
 
 Usage:
@@ -86,6 +88,38 @@ def find_urls(text: str):
     return re.findall(r"https?://[^\s\"',)>\]]+", text)
 
 
+_MASK = lambda s: f"<REDACTED:{len(s)}chars>"
+# Value sitting after an `=` or `:` — e.g. api_key = sk-live...
+_ASSIGNED_VALUE = re.compile(r"([=:]\s*)(['\"]?)([^\s'\",;]{6,})(\2)")
+# Any long unbroken credential-shaped run.
+_TOKEN_LIKE = re.compile(r"[A-Za-z0-9_\-]{12,}")
+
+
+def redact(text: str, pat, cat: str) -> str:
+    """Strip secret material out of an excerpt before it is stored or printed.
+
+    Two passes, because one is not enough. The `secrets_credentials` pattern matches
+    the LABEL ("api_key", "Bearer", "password"), not the value — so replacing only the
+    match removes the word and leaves the actual credential sitting in the surrounding
+    excerpt. For that category we additionally mask assigned values and any long
+    token-shaped run.
+
+    The aggressive pass is scoped to secrets only: masking every 12-char word would
+    make the guarantee/authorship/plumbing excerpts unreadable for no safety gain.
+
+    Value-masking runs BEFORE the keyword pass, not after: the placeholder contains a
+    colon, so an assigned-value pass running second would match its own output and
+    produce nested `<REDACTED:<REDACTED:...` garbage.
+    """
+    out = text
+    if cat == "secrets_credentials":
+        out = _ASSIGNED_VALUE.sub(
+            lambda m: f"{m.group(1)}{m.group(2)}{_MASK(m.group(3))}{m.group(4)}", out
+        )
+        out = _TOKEN_LIKE.sub(lambda m: _MASK(m.group(0)), out)
+    return pat.sub(lambda m: _MASK(m.group(0)), out)
+
+
 def sweep_text_patterns(filename, text, results):
     lines = text.splitlines()
     for cat, pat in PATTERNS.items():
@@ -95,7 +129,7 @@ def sweep_text_patterns(filename, text, results):
                     "file": filename,
                     "line": i,
                     "matched_pattern": cat,
-                    "context_excerpt": line.strip()[:160],
+                    "context_excerpt": redact(line.strip(), pat, cat)[:160],
                 })
 
 
@@ -117,11 +151,12 @@ def sweep_csv(filename, path, results, url_report, host_allowed, domain_field):
             row_text = " | ".join(f"{k}={v}" for k, v in row.items() if v)
             for cat, pat in PATTERNS.items():
                 for m in pat.finditer(row_text):
+                    window = row_text[max(0, m.start() - 40):m.end() + 40]
                     results[cat]["hits"].append({
                         "file": filename,
                         "row": row_idx,
                         "matched_pattern": cat,
-                        "context_excerpt": row_text[max(0, m.start() - 40):m.end() + 40][:160],
+                        "context_excerpt": redact(window, pat, cat)[:160],
                     })
             for field, val in row.items():
                 if not val:
