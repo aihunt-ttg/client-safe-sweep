@@ -69,6 +69,12 @@ what came out of that. It's the same sweep I run before my own work goes out.
 
 If it catches something for you, that's the whole point — it's free and MIT licensed.
 
+## Available for work
+
+I take on freelance automation builds — agent workflows, n8n, Python, API integrations, and Claude
+Code pipelines like this one. If you want a version of this tuned to your own stack, or you have
+something else that needs automating: **ai-runnereatit@proton.me**
+
 ## License
 
 MIT. See [LICENSE](LICENSE).
